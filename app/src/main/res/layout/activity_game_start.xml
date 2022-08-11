@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/start_background"
+    tools:context=".GameStartActivity">
+
+    <TextView
+        android:id="@+id/mainTitle"
+        android:text="검 키우기"
+        android:textSize="70sp"
+        android:textColor="#FFFFFF"
+        android:layout_marginBottom="170dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:fontFamily="@font/maplestory"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+
+
+    <androidx.appcompat.widget.AppCompatImageButton
+        android:id="@+id/gameStart_btn"
+        android:background="@drawable/custom_start_btn"
+        android:src="@drawable/maple_login"
+        android:scaleType="centerCrop"
+        android:foreground="?android:attr/selectableItemBackground"
+        app:layout_constraintTop_toBottomOf="@id/mainTitle"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="100dp"
+        android:layout_width="150dp"
+        android:layout_height="100dp"/>
+
+    <TextView
+        android:text="ReinForce Sword v1 made by 꿩"
+        android:textSize="20sp"
+        android:fontFamily="@font/maplestory"
+        android:textColor="#E9CF7F1C"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
