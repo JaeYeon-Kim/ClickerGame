@@ -30,6 +30,18 @@
             android:background="#00FF0000"
             android:src="@drawable/first_sword" />
 
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/boss_start_btn"
+            android:text="보스 Start"
+            android:textSize="18sp"
+            android:textColor="@color/white"
+            android:background="@drawable/custom_upgrade_btn"
+            android:layout_gravity="bottom"
+            android:layout_marginBottom="10dp"
+            android:layout_marginHorizontal="10dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="100dp"
@@ -78,7 +90,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
-                android:text="10000"
+                android:text="1"
                 android:fontFamily="@font/maplestory"
                 android:textColor="@color/white"
                 android:textSize="20sp"

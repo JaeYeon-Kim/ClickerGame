@@ -5,6 +5,7 @@ import android.content.Intent
 import android.media.MediaPlayer
 import android.media.SoundPool
 import android.os.Bundle
+import android.os.CountDownTimer
 import android.util.Log
 import android.view.MotionEvent
 import android.view.View
@@ -15,6 +16,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.kjy.clickergame.databinding.ActivityMainBinding
 import java.util.*
 import kotlin.collections.ArrayList
+import kotlin.concurrent.timer
 
 // View.OnClickListener 리스너 추가
 class MainActivity : AppCompatActivity(), View.OnClickListener {
@@ -23,11 +25,21 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         ActivityMainBinding.inflate(layoutInflater)
     }
 
+
+    // 클릭당 골드 t/f 파악을 위한 변수 설정
+    private var hundredClick = false
+
+    // 초당 골드 t/f 파악을 위한 변수 설정
+    private var hundredSeconds = false
+
+
     // 배경음악 설정
     private var mediaPlayer: MediaPlayer? = null
 
+    // 검의 이미지 파악을 위한 번호 매기기 변수
+    private var swordNumber: Int = 1
 
-    
+
     /////// 클릭형 게임에 필요한 변수 설정///////
 
     // 골드 변수 및 레벨 선언
@@ -37,12 +49,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
     // 클릭당 골드 변수
     var goldPerClick: Int = 1
     // 골드 업그레이드 레벨 배열 설정
-    var level: IntArray = IntArray(10)
-
-    // 무기를 알기 위한 리스트
-    var swordList = arrayListOf(R.drawable.first_sword, R.drawable.second_sword, R.drawable.sword_3,
-                                    R.drawable.sword_4, R.drawable.sword_5, R.drawable.sword_6, R.drawable.sword_7
-                                    ,R.drawable.sword_8, R.drawable.sword_9, R.drawable.sword_10)
+    var level: IntArray = IntArray(50)
 
     // 업그레이드 골드
     var upgradeGold: Int = 30
@@ -57,6 +64,10 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
+
+
+       // 보스 시작
+       bossStart()
 
        // 버튼 클릭 변수 여러개
        binding.upgradeClickGold.setOnClickListener(this)
@@ -78,7 +89,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
 
 
        // 골드 업그레이드 레벨 설정
-       for (i in 0..9) {
+       for (i in 0..49) {
            level[i] = 1
        }
 
@@ -126,12 +137,19 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         }
 
 
-        // 게임 배경 클릭시 효과
+        // 게임 배경 클릭시 기본 돈이 올라감 (기본 클리커)
       binding.gameBackground.setOnTouchListener { _, event ->
             when (event?.action) {
                 MotionEvent.ACTION_DOWN -> {
                     binding.lottieCoinAnimation.playAnimation()
-                    gold += goldPerClick
+                    when(hundredClick) {
+                        false -> {
+                            gold += goldPerClick
+                        }
+                        true -> {
+                            gold += goldPerClick * 100
+                        }
+                    }
                 }
             }
             false
@@ -141,7 +159,14 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         val timer = Timer()
         timer.schedule(object: TimerTask() {     //     timer 내부는 워커 스레드 이기 때문에 ui 조작 x
             override fun run() {
-                gold += goldPerSeconds
+                when (hundredSeconds) {
+                    false -> {
+                        gold += goldPerSeconds
+                    }
+                    true -> {
+                        gold += goldPerSeconds * 100
+                    }
+                }
                 runOnUiThread {                 // Ui 조작
                     displayGold()
                     displayGoldPerClick()
@@ -149,6 +174,22 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
                 }
             }
         }, 1000, 1000)
+    }
+
+    // 타이머 진행중 다른 액티비티로 전환시 호출되어 타이머를 종료 시켜줌.
+    // 데이터 저장이나 스레드 중지를 처리하기 좋은 메소드
+    override fun onPause() {
+        super.onPause()
+        mediaPlayer?.pause()
+        clickCountDown.cancel()         // 클릭당 100배 타이머 정지
+        secondCountDown.cancel()        // 초당 100배 타이머 정지
+
+    }
+
+    override fun onResume() {
+        super.onResume()
+        mediaPlayer?.isLooping = true
+        mediaPlayer?.start()
     }
 
 
@@ -169,7 +210,32 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
     // 초당 골드 텍스트 함수
     private fun displayGoldPerSeconds() {
         binding.perGold.text = "$goldPerSeconds"
+    }
+
+    // 클릭당 골드 t/f 파악을 위한 카운트다운 타이머 만들기
+    private val clickCountDown: CountDownTimer = object: CountDownTimer(5000, 1000) {
+        override fun onTick(millisUntilFinished: Long) {
+            hundredClick = true
         }
+
+        override fun onFinish() {
+            hundredClick = false
+        }
+
+    }
+
+    // 초당 골드 t/f 파악을 위한 카운트다운 타이머 만들기
+    private val secondCountDown: CountDownTimer = object: CountDownTimer(5000, 1000) {
+        override fun onTick(millisUntilFinished: Long) {
+            hundredSeconds = true
+        }
+
+        override fun onFinish() {
+            hundredSeconds = false
+        }
+
+    }
+
 
     override fun onClick(v: View?) {
 
@@ -192,6 +258,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
                     gold -= level[0] * upgradeGold
                     goldPerClick += 5
                     level[0] ++
+                    Log.d("업그레이드 현재 수치", "${level[0]}")
                     displayGold()
                     displayGoldPerClick()
                     displayUpgradeClick()
@@ -204,7 +271,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
             // 초당 골드 업그레이드 버튼 클릭시
             binding.upgradePerGold.id -> {
                 Log.d("Per Gold Button", "초당 골드 증가 버튼 클릭하였습니다.")
-                if (gold >= level[1] * upgradeGold) {
+                if (gold >= level[1] * upgradeGold) {               // level[0] = 1
                     gold -= level[1] * upgradeGold
                     goldPerSeconds += 3
                     level[1] ++
@@ -220,64 +287,89 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
             // 클릭당 100배 업그레이드
             binding.buttonClickHundred.id -> {
                 Log.d("Hundred click Button", "클릭당 100배 버튼 클릭하였습니다.")
-                gold += goldPerClick * 100
-                displayGold()
+                clickCountDown.start()
+
             }
 
             // 초당 100배 업그레이드
             binding.buttonPerHundred.id -> {
                 Log.d("Hundred per Button", "초당 100배 버튼 클릭하였습니다.")
-                gold += goldPerSeconds * 100
+                secondCountDown.start()
+
             }
 
             // 무기 구매
             binding.upgradeSword.id -> {
-                Log.d("Upgrade Sword", "무기 업그레이드 버튼 클릭하였습니다.")
+                Log.d("Upgrade Sword", "무기 업그레이드 버튼 클릭하였습니다")
+                when(swordNumber) {
+                        1 -> {
+                            if (gold > 1000) {
+                                gold -= 1000
+                                binding.swordImage.setImageResource(R.drawable.second_sword)
+                                swordNumber = 2
+                        }
+                     }
+                        2 -> {
+                             if (gold > 5000){
+                                 gold -= 5000
+                                binding.swordImage.setImageResource(R.drawable.sword_3)
+                                swordNumber = 3
+                        }
+                        }
 
-                when (gold) {
-                    in 1001..4999 -> {
-                        gold -= 1000
-                        binding.swordImage.setImageResource(swordList[1])
-                    }
-                    in 5000..9999 -> {
-                        gold -= 5000
-                        binding.swordImage.setImageResource(swordList[2])
-                    }
-                    in 10000..19999 -> {
-                        gold -= 10000
-                        binding.swordImage.setImageResource(swordList[3])
-                    }
-                    in 20000..49999 -> {
-                        gold -= 20000
-                        binding.swordImage.setImageResource(swordList[4])
-                    }
-                    in 50000..99999 -> {
-                        gold -= 50000
-                        binding.swordImage.setImageResource(swordList[5])
-                    }
-                    in 100000..999999 -> {
-                        gold -= 100000
-                        binding.swordImage.setImageResource(swordList[6])
-                    }
-                    in 1000000..4999999 -> {
-                        gold -= 5000000
-                        binding.swordImage.setImageResource(swordList[7])
-                    }
-                    in 5000000..9999999 -> {
-                        gold -= 10000000
-                        binding.swordImage.setImageResource(swordList[8])
-                    }
-                    in 10000000..99999999 -> {
-                        gold -= 100000000
-                        binding.swordImage.setImageResource(swordList[9])
-                    }
-                    else -> {
-                        Toast.makeText(this, "돈을 더 모아오너라", Toast.LENGTH_SHORT).show()
-                    }
+                        3 -> {
+                            if (gold > 10000) {
+                                gold -= 10000
+                                binding.swordImage.setImageResource(R.drawable.sword_4)
+                                swordNumber = 4
+                            }
+                        }
+
+                        4 -> {
+                            if (gold > 50000) {
+                                gold -= 50000
+                                binding.swordImage.setImageResource(R.drawable.sword_5)
+                                swordNumber = 5
+                            }
+                        }
+                        5 -> {
+                            if (gold > 100000) {
+                                gold -= 100000
+                                binding.swordImage.setImageResource(R.drawable.sword_6)
+                                swordNumber = 6
+
+                            }
+                        }
+                        6 -> {
+                            if (gold > 1000000) {
+                                gold -= 1000000
+                                binding.swordImage.setImageResource(R.drawable.sword_7)
+                                swordNumber = 7
+                            }
+                        }
+                        7 -> {
+                            if (gold > 5000000) {
+                                gold -= 5000000
+                                binding.swordImage.setImageResource(R.drawable.sword_8)
+                                swordNumber = 8
+                            }
+                        }
+                        8 -> {
+                            if (gold > 10000000) {
+                                gold -= 10000000
+                                binding.swordImage.setImageResource(R.drawable.sword_9)
+                                swordNumber = 9
+                            }
+                        }
+                        9 -> {
+                            if (gold > 50000000) {
+                                gold -= 50000000
+                                binding.swordImage.setImageResource(R.drawable.sword_10)
+                                swordNumber = 10
+                            }
+                        }
                 }
-
             }
-
             }
         }
 
@@ -287,6 +379,19 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
 
     private fun displayUpgradeSeconds() {
         binding.upgradePerGoldText.text = "${level[1] * upgradeGold}"
+    }
+
+
+    // 보스 시작 버튼
+    // 현재 검의 정보를 넘겨주어야 한다.
+    // int형의 swordNumber
+    private fun bossStart() {
+        binding.bossStartBtn.setOnClickListener{
+            val intent = Intent(this, BossActivity::class.java)
+            intent.putExtra("swordNumber", swordNumber.toString())
+            Log.d("swordNumber", "$swordNumber")
+            startActivity(intent)
+        }
     }
 
     }

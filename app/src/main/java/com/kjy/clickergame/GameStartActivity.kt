@@ -43,6 +43,17 @@ class GameStartActivity : AppCompatActivity() {
 
     }
 
+    override fun onPause() {
+        super.onPause()
+        mediaPlayer?.pause()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        mediaPlayer?.isLooping = true
+        mediaPlayer?.start()
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         mediaPlayer?.release()

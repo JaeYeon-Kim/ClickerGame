@@ -6,6 +6,8 @@
         <entry key="app/src/main/res/drawable/custom.xml" value="0.156" />
         <entry key="app/src/main/res/drawable/custom_start_btn.xml" value="0.156" />
         <entry key="app/src/main/res/drawable/custom_upgrade_btn.xml" value="0.156" />
+        <entry key="app/src/main/res/drawable/progressbar_custom.xml" value="0.1565" />
+        <entry key="app/src/main/res/layout/activity_boss.xml" value="0.23385416666666667" />
         <entry key="app/src/main/res/layout/activity_game_start.xml" value="0.18958333333333333" />
         <entry key="app/src/main/res/layout/activity_main.xml" value="0.25" />
         <entry key="app/src/main/res/menu/game_menu.xml" value="0.22512820512820514" />

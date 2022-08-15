@@ -12,7 +12,7 @@
         android:id="@+id/mainTitle"
         android:text="검 키우기"
         android:textSize="70sp"
-        android:textColor="#FFFFFF"
+        android:textColor="#FFCF7F1C"
         android:layout_marginBottom="170dp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
