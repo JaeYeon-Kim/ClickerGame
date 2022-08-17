@@ -50,4 +50,8 @@ dependencies {
 
     // Glide 라이브러리 추가
     implementation 'com.github.bumptech.glide:glide:4.13.2'
+
+
+    // Gson 라이브러리 추가
+    implementation 'com.google.code.gson:gson:2.9.1'
 }

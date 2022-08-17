@@ -1,13 +1,21 @@
 package com.kjy.clickergame
 
 import android.annotation.SuppressLint
+import android.app.AlertDialog
+import android.content.Context
+import android.content.DialogInterface
+import android.content.Intent
 import android.media.MediaPlayer
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.util.Log
 import android.view.WindowManager
+import android.widget.Toast
 import com.bumptech.glide.Glide
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
+import com.google.gson.reflect.TypeToken
 import com.kjy.clickergame.databinding.ActivityBossBinding
 import java.util.*
 import kotlin.concurrent.timer
@@ -122,7 +130,7 @@ class BossActivity : AppCompatActivity() {
 
         // 보스의 토벌시간 30초 동안 얼마정도의 Hp를 깎았는지 1초마다 표시해주기위한 프로그래스바의 타이머
         // 이전 액티비티에서 보스 액티비티로 전환시 바로 시작!
-        val progressCountDown = object: CountDownTimer(30000, 1000) {
+        val progressCountDown = object: CountDownTimer(31700, 1000) {
             override fun onTick(millisUntilFinished: Long) {
                 // 총 30초 1초의 interval 마다 ui 업데이트
                 // 무기 종류에 따라 초당 데미지가 다르게 들어감
@@ -166,13 +174,50 @@ class BossActivity : AppCompatActivity() {
                         binding.bossHp.incrementProgressBy(-swordDamage)
                     }
                 }
+
+                if (binding.bossHp.progress == 0) {
+                    timerTask?.cancel()
+                    binding.bossImage.setImageResource(R.drawable.complete_boss)
+                    saveRank()
+                    var builder = AlertDialog.Builder(this@BossActivity)
+                    builder.setTitle("보스 격파 성공!!")
+                    builder.setMessage("랭킹 페이지로 이동합니다.")
+                    var listener_1 = object: DialogInterface.OnClickListener{
+                        override fun onClick(dialog: DialogInterface?, p1: Int) {
+                            when (p1) {
+                                DialogInterface.BUTTON_POSITIVE -> {
+                                    val intent = Intent(this@BossActivity, RankingActivity::class.java)
+                                    startActivity(intent)
+                                    finish()
+                                }
+                            }
+                        }
+                    }
+                    builder.setPositiveButton("예", listener_1)
+                    builder.show()
+                }
             }
 
             override fun onFinish() {
                 timerTask?.cancel()
-
-            }
-
+                    var builder = AlertDialog.Builder(this@BossActivity)
+                    builder.setTitle("보스 격파 실패!!")
+                    builder.setMessage("메인 페이지로 이동합니다.")
+// 한개의 선택지로 바로 이동할 수 있게
+                    var listener_3 = object : DialogInterface.OnClickListener{
+                        override fun onClick(dialog: DialogInterface?, p1: Int) {
+                            when(p1) {
+                                DialogInterface.BUTTON_POSITIVE -> {
+                                    val intent = Intent(this@BossActivity, GameStartActivity::class.java)
+                                    startActivity(intent)
+                                    finish()
+                                }
+                            }
+                        }
+                    }
+                    builder.setPositiveButton("예", listener_3)
+                    builder.show()
+                }
         }
         progressCountDown.start()
     }
@@ -203,11 +248,28 @@ class BossActivity : AppCompatActivity() {
 
             // ui 스레드 기능
             runOnUiThread {
-                binding.secTimer.text = "${sec}"
-                binding.milliTimer.text = "${milli}"
+                binding.secTimer.text = "$sec"
+                binding.milliTimer.text = "$milli"
 
             }
         }
+    }
+
+    // 리스트 형태로 저장하기(Gson 이용)
+    @SuppressLint("CommitPrefEdits")
+    private fun saveRank() {
+        val preferences = getSharedPreferences("RankData", Context.MODE_PRIVATE)
+        val jsonData = preferences.getString("rank", "")
+
+        val gson = Gson()
+        val token: TypeToken<MutableList<InformData>> = object: TypeToken<MutableList<InformData>>(){}
+        val list: MutableList<InformData>? = gson.fromJson(jsonData, token.type)
+
+        list?.add(InformData("Guest", swordNumber, "OK"))
+
+        val editor = preferences.edit()
+        editor.putString("rank", gson.toJson(list, token.type))
+        editor.apply()
     }
 
 

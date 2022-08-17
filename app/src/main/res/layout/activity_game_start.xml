@@ -11,7 +11,7 @@
     <TextView
         android:id="@+id/mainTitle"
         android:text="검 키우기"
-        android:textSize="70sp"
+        android:textSize="80sp"
         android:textColor="#FFCF7F1C"
         android:layout_marginBottom="170dp"
         app:layout_constraintTop_toTopOf="parent"
@@ -25,15 +25,15 @@
 
     <androidx.appcompat.widget.AppCompatImageButton
         android:id="@+id/gameStart_btn"
-        android:background="@drawable/custom_start_btn"
         android:src="@drawable/maple_login"
         android:scaleType="centerCrop"
+        android:background="#00FF0000"
         android:foreground="?android:attr/selectableItemBackground"
         app:layout_constraintTop_toBottomOf="@id/mainTitle"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginTop="100dp"
-        android:layout_width="150dp"
+        android:layout_width="210dp"
         android:layout_height="100dp"/>
 
     <TextView

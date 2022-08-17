@@ -1,11 +1,17 @@
 package com.kjy.clickergame
 
 import android.annotation.SuppressLint
+import android.app.AlertDialog
+import android.app.Dialog
+import android.content.Context
+import android.content.DialogInterface
 import android.content.Intent
 import android.media.MediaPlayer
 import android.media.SoundPool
 import android.os.Bundle
 import android.os.CountDownTimer
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.MotionEvent
 import android.view.View
@@ -38,6 +44,8 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
 
     // 검의 이미지 파악을 위한 번호 매기기 변수
     private var swordNumber: Int = 1
+
+
 
 
     /////// 클릭형 게임에 필요한 변수 설정///////
@@ -128,7 +136,8 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
                         startActivity(intent)
                         finish()
                         return@setOnMenuItemClickListener true
-                    } else -> {
+                    }
+                    else -> {
                         return@setOnMenuItemClickListener false
                     }
 
@@ -155,6 +164,13 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
             false
         }
 
+       // 저장한 것을 불러오는 함수
+       loaded()
+
+
+
+
+
         // 타이머 구현해서 초당 골드 수 계산하기
         val timer = Timer()
         timer.schedule(object: TimerTask() {     //     timer 내부는 워커 스레드 이기 때문에 ui 조작 x
@@ -167,6 +183,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
                         gold += goldPerSeconds * 100
                     }
                 }
+
                 runOnUiThread {                 // Ui 조작
                     displayGold()
                     displayGoldPerClick()
@@ -174,7 +191,17 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
                 }
             }
         }, 1000, 1000)
+
+       // 타이머 설정하여 게임 실행 5초 이후에 10초마다 자동 저장
+       val saveTimer = Timer()
+       saveTimer.schedule(object: TimerTask() {
+           override fun run() {
+               saved()
+           }
+
+       }, 5000, 1000)
     }
+
 
     // 타이머 진행중 다른 액티비티로 전환시 호출되어 타이머를 종료 시켜줌.
     // 데이터 저장이나 스레드 중지를 처리하기 좋은 메소드
@@ -236,6 +263,29 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
 
     }
 
+    override fun onBackPressed() {
+        var builder = AlertDialog.Builder(this)
+        builder.setTitle("게임 종료")
+        builder.setMessage("정말 게임을 종료하시겠습니까?")
+        var listener = object : DialogInterface.OnClickListener{
+            override fun onClick(dialog: DialogInterface?, p1: Int) {
+                when (p1) {
+                    DialogInterface.BUTTON_POSITIVE -> {
+                        saved()
+                        finish()
+                    }
+
+                    DialogInterface.BUTTON_NEGATIVE -> {
+                        dialog?.cancel()
+                    }
+                }
+            }
+        }
+        builder.setPositiveButton("예", listener)
+        builder.setNegativeButton("아니오", listener)
+        builder.show()
+    }
+
 
     override fun onClick(v: View?) {
 
@@ -244,9 +294,16 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
             binding.gameBackground.id -> {
                 soundGoldClick = SoundPool.Builder().build()
                 val goldClickSoundId = soundGoldClick?.load(this, R.raw.coin_sound, 1)
-                soundGoldClick?.setOnLoadCompleteListener(SoundPool.OnLoadCompleteListener { soundPool, sampleId, status ->
-                    soundGoldClick?.play(goldClickSoundId!!, 1f, 1f, 0, 0, 1f)
-                })
+                val handler = Handler(Looper.getMainLooper())
+                handler.postDelayed(object: Runnable {
+                    override fun run() {
+                        soundGoldClick?.play(goldClickSoundId!!, 1f, 1f, 0, 0, 1f)
+                    }
+
+                }, 100)
+
+
+                Log.d("무기 레벨", "$swordNumber")
 
                 }
 
@@ -365,7 +422,6 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
                             if (gold > 50000000) {
                                 gold -= 50000000
                                 binding.swordImage.setImageResource(R.drawable.sword_10)
-                                swordNumber = 10
                             }
                         }
                 }
@@ -393,6 +449,42 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
             startActivity(intent)
         }
     }
+
+    // 저장 & 불러오기 기능 구현하기
+    // sharedPreferences에 저장해줌
+    private fun saved() {
+        val shared = getSharedPreferences("ClickMain", Context.MODE_PRIVATE)
+        val editor = shared.edit()
+        editor.putInt("Gold", gold)
+        editor.putInt("GoldPerClick", goldPerClick)
+        editor.putInt("GoldPerSeconds", goldPerSeconds)
+        editor.putInt("SwordNumber", swordNumber)
+        editor.putInt("level0", level[0])
+        editor.putInt("level1", level[1])
+        editor.apply()          // apply를 해주어야 sharedPreferences에 저장이 된다.
+    }
+
+    // sharedPreferences에 저장된 정보 불러오기
+    private fun loaded() {
+        val shared = getSharedPreferences("ClickMain", Context.MODE_PRIVATE)
+        gold = shared.getInt("Gold", 1)
+        goldPerClick = shared.getInt("GoldPerClick", 1)
+        goldPerSeconds = shared.getInt("GoldPerSeconds", 1)
+        swordNumber = shared.getInt("SwordNumber", 1)
+        level[0] = shared.getInt("level0", 1)
+        level[1] = shared.getInt("level1", 1)
+
+    }
+
+
+    // 초기화 하는 함수
+    private fun reset() {
+        val shared = getSharedPreferences("ClickMain", Context.MODE_PRIVATE)
+        val editor = shared.edit()
+        editor.clear()
+        editor.apply()
+    }
+
 
     }
 

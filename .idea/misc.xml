@@ -10,6 +10,8 @@
         <entry key="app/src/main/res/layout/activity_boss.xml" value="0.23385416666666667" />
         <entry key="app/src/main/res/layout/activity_game_start.xml" value="0.18958333333333333" />
         <entry key="app/src/main/res/layout/activity_main.xml" value="0.25" />
+        <entry key="app/src/main/res/layout/activity_ranking.xml" value="0.21897435897435896" />
+        <entry key="app/src/main/res/layout/rank_recycler.xml" value="0.21897435897435896" />
         <entry key="app/src/main/res/menu/game_menu.xml" value="0.22512820512820514" />
       </map>
     </option>
